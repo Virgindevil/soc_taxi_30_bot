@@ -1,102 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://dev.max.ru/js/max-web-app.js"></script>
+    <title>Социальное Такси</title>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
     <style>
-        :root {
-            --primary-color: #007bff;
-            --bg-color: #f4f7f9;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-color);
-            padding: 15px;
-            color: #333;
-        }
-        .form-group { margin-bottom: 15px; }
-        label { 
-            display: block; 
-            margin-bottom: 5px; 
-            font-weight: 600; 
-            font-size: 14px;
-        }
-        input, select { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            box-sizing: border-box; /* Чтобы padding не раздувал ширину */
-            font-size: 16px; /* Предотвращает зум на iPhone */
-        }
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background-color: var(--primary-color); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:active { background-color: #0056b3; }
-        h3 { text-align: center; color: #222; }
+        body { font-family: -apple-system, sans-serif; padding: 15px; background: #f9f9f9; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
-    <h3>Заказ социального такси</h3>
-    
-    <div class="form-group">
-        <label>Категория льготы</label>
+    <div class="card">
+        <h3>🚕 Новый заказ</h3>
+        <label>Категория:</label>
         <select id="category">
-            <option value="Участник СВО">Участник СВО</option>
-            <option value="Инвалид 1 или 2 группы">Инвалид 1 или 2 группы</option>
+            <option value="Инвалид 1 гр.">Инвалид 1 группы</option>
+            <option value="Пенсионер">Пенсионер</option>
         </select>
+        
+        <label>Куда едем:</label>
+        <input type="text" id="address" placeholder="Улица, дом...">
+        
+        <label>Когда:</label>
+        <input type="datetime-local" id="date">
+        
+        <button onclick="handleOrder()">Оформить заказ</button>
     </div>
-
-    <div class="form-group">
-        <label>Дата поездки</label>
-        <input type="date" id="date">
-    </div>
-
-    <div class="form-group">
-        <label>Время подачи</label>
-        <input type="time" id="time">
-    </div>
-
-    <div class="form-group">
-        <label>Адрес подачи (г. Астрахань и пригород)</label>
-        <input type="text" id="address" placeholder="Напр: ул. Ленина, 1">
-    </div>
-
-    <button id="main-button" onclick="sendData()">Отправить заявку</button>
 
     <script>
-        const webApp = window.WebApp;
-        // Расширяем приложение на всё окно
-        webApp.expand();
+        function handleOrder() {
+            const addr = document.getElementById('address').value;
+            const cat = document.getElementById('category').value;
+            const time = document.getElementById('date').value;
 
-        function sendData() {
-            // Пробуем найти WebApp в разных местах
-            const tg = window.WebApp || window.parent.WebApp;
-            
-            if (tg && typeof tg.sendData === 'function') {
-                const data = {
-                    category: document.getElementById('category').value,
-                    address: document.getElementById('address').value,
-                    date: document.getElementById('date').value
-                };
-                tg.sendData(JSON.stringify(data));
-            } else {
-                alert("Библиотека MAX не найдена. Попробуйте обновить страницу.");
+            if (!addr || !time) {
+                alert("Заполните все поля!");
+                return;
             }
-        }
 
-            // Отправляем данные боту
-            webApp.sendData(JSON.stringify(data));
+            // Формируем текст сообщения
+            const text = `ЗАКАЗ ТАКСИ\n📍 Адрес: ${addr}\n👤 Категория: ${cat}\n⏰ Время: ${time}`;
+            
+            // Используем официальный диплинк шеринга MAX для отправки сообщения боту
+            const shareUrl = `https://max.ru/:share?text=${encodeURIComponent(text)}`;
+            
+            // Открываем окно шеринга
+            window.WebApp.openLink(shareUrl);
         }
     </script>
 </body>
