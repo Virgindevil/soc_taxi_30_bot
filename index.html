@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://dev.max.ru/js/max-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        input, select, button { width: 100%; margin-bottom: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h3>Заявка на социальное такси</h3>
+    <select id="category">
+        <option value="svo">Участник СВО</option>
+        <option value="invalid">Инвалид 1/2 группы</option>
+    </select>
+    <input type="date" id="date">
+    <input type="time" id="time">
+    <input type="text" id="address" placeholder="Адрес подачи">
+    <button onclick="sendData()">Отправить заявку</button>
+
+    <script>
+        const webApp = window.WebApp;
+        
+        function sendData() {
+            const data = {
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                address: document.getElementById('address').value
+            };
+            
+            // Отправляем данные обратно боту
+            webApp.sendData(JSON.stringify(data));
+        }
+    </script>
+</body>
+</html>
