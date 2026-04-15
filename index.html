@@ -2,54 +2,162 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Социальное Такси</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Социальное такси Астрахань</title>
     <script src="https://st.max.ru/js/max-web-app.js"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; padding: 15px; background: #f9f9f9; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 15px; }
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-color: #f4f7f6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: var(--primary-color);
+        }
+        .container {
+            max-width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 15px 0 8px;
+            display: block;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .btn-send {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn-send:active {
+            opacity: 0.8;
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>🚕 Новый заказ</h3>
-        <label>Категория:</label>
-        <select id="category">
-            <option value="Инвалид 1 гр.">Инвалид 1 группы</option>
-            <option value="Пенсионер">Пенсионер</option>
-        </select>
-        
-        <label>Куда едем:</label>
-        <input type="text" id="address" placeholder="Улица, дом...">
-        
-        <label>Когда:</label>
-        <input type="datetime-local" id="date">
-        
-        <button onclick="handleOrder()">Оформить заказ</button>
+
+<div class="container">
+    <h2>🚕 Социальное такси (Астрахань)</h2>
+
+    <label class="section-title">Категория льготы:</label>
+    <select id="category">
+        <option value="Инвалид 1 группы">Инвалид 1 группы</option>
+        <option value="Инвалид 2 группы">Инвалид 2 группы</option>
+        <option value="Участник СВО">Участник СВО (ветеран БД)</option>
+    </select>
+
+    <label class="section-title">Дата и время подачи:</label>
+    <div style="display: flex; gap: 10px;">
+        <input type="date" id="date">
+        <input type="time" id="time">
     </div>
 
-    <script>
-        function handleOrder() {
-            const addr = document.getElementById('address').value;
-            const cat = document.getElementById('category').value;
-            const time = document.getElementById('date').value;
+    <label class="section-title">Адрес подачи (Астрахань/пригород):</label>
+    <input type="text" id="address_from" placeholder="Улица, дом, подъезд">
 
-            if (!addr || !time) {
-                alert("Заполните все поля!");
-                return;
+    <label class="section-title">Куда едем:</label>
+    <input type="text" id="address_to" placeholder="Напр: Поликлиника №1">
+
+    <label class="section-title">Контактный телефон:</label>
+    <input type="tel" id="phone" placeholder="+7 (___) ___-__-__">
+
+    <button class="btn-send" onclick="submitOrder()">Оформить заказ</button>
+    
+    <p class="hint">Заявка будет отправлена диспетчеру через чат</p>
+</div>
+
+<script>
+    // Устанавливаем сегодняшнюю дату по умолчанию
+    document.getElementById('date').valueAsDate = new Date();
+
+    function submitOrder() {
+        const data = {
+            category: document.getElementById('category').value,
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            from: document.getElementById('address_from').value,
+            to: document.getElementById('address_to').value,
+            phone: document.getElementById('phone').value
+        };
+
+        // Проверка на заполнение полей
+        if (!data.from || !data.to || !data.phone || !data.time) {
+            alert('Пожалуйста, заполните все поля заказа');
+            return;
+        }
+
+        // Формируем красивый текст для бота
+        const message = `🚕 **НОВЫЙ ЗАКАЗ ТАКСИ (АСТРАХАНЬ)**\n` +
+                        `--------------------------\n` +
+                        `👤 **Категория:** ${data.category}\n` +
+                        `📅 **Когда:** ${data.date} в ${data.time}\n` +
+                        `📍 **Откуда:** ${data.from}\n` +
+                        `🏁 **Куда:** ${data.to}\n` +
+                        `📞 **Телефон:** ${data.phone}`;
+
+        // Логика отправки через MAX Bridge
+        if (window.WebApp && window.WebApp.shareMaxContent) {
+            // Включаем тактильный отклик (вибрацию)
+            if (window.WebApp.HapticFeedback) {
+                window.WebApp.HapticFeedback.notificationOccurred('success');
             }
 
-            // Формируем текст сообщения
-            const text = `ЗАКАЗ ТАКСИ\n📍 Адрес: ${addr}\n👤 Категория: ${cat}\n⏰ Время: ${time}`;
-            
-            // Используем официальный диплинк шеринга MAX для отправки сообщения боту
-            const shareUrl = `https://max.ru/:share?text=${encodeURIComponent(text)}`;
-            
-            // Открываем окно шеринга
-            window.WebApp.openLink(shareUrl);
+            window.WebApp.shareMaxContent({
+                text: message
+            }).then(({ status }) => {
+                if (status === 'shared') {
+                    // Закрываем мини-приложение после успешной отправки
+                    window.close();
+                }
+            }).catch((err) => {
+                console.error('Ошибка шеринга:', err);
+                alert('Не удалось отправить сообщение в чат.');
+            });
+        } else {
+            // Если открыто просто в браузере (для тестов)
+            console.log("Данные заказа:", message);
+            alert("Заказ сформирован (имитация). Откройте через MAX для реальной отправки.");
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
