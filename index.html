@@ -6,158 +6,97 @@
     <title>Социальное такси Астрахань</title>
     <script src="https://st.max.ru/js/max-web-app.js"></script>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #e67e22;
-            --bg-color: #f4f7f6;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 15px;
-            color: var(--primary-color);
-        }
-        .container {
-            max-width: 100%;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 10px;
-        }
-        .section-title {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin: 15px 0 8px;
-            display: block;
-        }
-        select, input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        .btn-send {
-            width: 100%;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: opacity 0.2s;
-        }
-        .btn-send:active {
-            opacity: 0.8;
-        }
-        .hint {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-top: 10px;
-            text-align: center;
-        }
+        :root { --primary: #2c3e50; --accent: #e67e22; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 15px; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .error-hint { color: #e74c3c; font-size: 0.8rem; display: none; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🚕 Социальное такси (Астрахань)</h2>
-
-    <label class="section-title">Категория льготы:</label>
+    <h3>🚕 Заказ такси</h3>
+    
     <select id="category">
         <option value="Инвалид 1 группы">Инвалид 1 группы</option>
         <option value="Инвалид 2 группы">Инвалид 2 группы</option>
-        <option value="Участник СВО">Участник СВО (ветеран БД)</option>
+        <option value="Участник СВО">Участник СВО</option>
     </select>
 
-    <label class="section-title">Дата и время подачи:</label>
-    <div style="display: flex; gap: 10px;">
-        <input type="date" id="date">
-        <input type="time" id="time">
-    </div>
-
-    <label class="section-title">Адрес подачи (Астрахань/пригород):</label>
-    <input type="text" id="address_from" placeholder="Улица, дом, подъезд">
-
-    <label class="section-title">Куда едем:</label>
-    <input type="text" id="address_to" placeholder="Напр: Поликлиника №1">
-
-    <label class="section-title">Контактный телефон:</label>
-    <input type="tel" id="phone" placeholder="+7 (___) ___-__-__">
-
-    <button class="btn-send" onclick="submitOrder()">Оформить заказ</button>
+    <input type="date" id="date">
+    <input type="time" id="time">
+    <input type="text" id="address_from" placeholder="Откуда (Астрахань/пригород)">
+    <input type="text" id="address_to" placeholder="Куда едем">
+    <input type="tel" id="phone" placeholder="Контактный телефон (цифры)">
     
-    <p class="hint">Заявка будет отправлена диспетчеру через чат</p>
+    <div id="error-msg" class="error-hint">Пожалуйста, исправьте ошибки в полях</div>
+    
+    <button class="btn" onclick="submitOrder()">Оформить заказ</button>
 </div>
 
 <script>
-    // Устанавливаем сегодняшнюю дату по умолчанию
-    document.getElementById('date').valueAsDate = new Date();
+    // 1. Ограничиваем дату (нельзя выбрать прошлое и дальше чем на месяц вперед)
+    const dateInput = document.getElementById('date');
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setMonth(today.getMonth() + 1);
+    
+    dateInput.min = today.toISOString().split('T')[0];
+    dateInput.max = maxDate.toISOString().split('T')[0];
+    dateInput.value = dateInput.min;
 
-    function submitOrder() {
-        const data = {
-            category: document.getElementById('category').value,
-            date: document.getElementById('date').value,
-            time: document.getElementById('time').value,
-            from: document.getElementById('address_from').value,
-            to: document.getElementById('address_to').value,
-            phone: document.getElementById('phone').value
-        };
+    function validate() {
+        const phone = document.getElementById('phone').value;
+        const from = document.getElementById('address_from').value;
+        const to = document.getElementById('address_to').value;
+        const date = document.getElementById('date').value;
+        
+        // Регулярка: только цифры, от 7 до 15 знаков
+        const phoneRegex = /^[0-9+]{7,15}$/;
+        // Проверка года (не больше 2027 на всякий случай)
+        const year = new Date(date).getFullYear();
 
-        // Проверка на заполнение полей
-        if (!data.from || !data.to || !data.phone || !data.time) {
-            alert('Пожалуйста, заполните все поля заказа');
+        if (!phoneRegex.test(phone.replace(/\s/g, ''))) return "Введите корректный номер телефона";
+        if (from.length < 3 || to.length < 3) return "Адрес слишком короткий";
+        if (year > 2027 || year < 2024) return "Введите корректную дату";
+        
+        return null;
+    }
+
+    async function submitOrder() {
+        const err = validate();
+        const errorDiv = document.getElementById('error-msg');
+
+        if (err) {
+            errorDiv.innerText = err;
+            errorDiv.style.display = 'block';
             return;
         }
+        errorDiv.style.display = 'none';
 
-        // Формируем красивый текст для бота
-        const message = `🚕 **НОВЫЙ ЗАКАЗ ТАКСИ (АСТРАХАНЬ)**\n` +
-                        `--------------------------\n` +
-                        `👤 **Категория:** ${data.category}\n` +
-                        `📅 **Когда:** ${data.date} в ${data.time}\n` +
-                        `📍 **Откуда:** ${data.from}\n` +
-                        `🏁 **Куда:** ${data.to}\n` +
-                        `📞 **Телефон:** ${data.phone}`;
+        const msg = `🚕 **ЗАКАЗ ТАКСИ**\nЛьгота: ${document.getElementById('category').value}\nКогда: ${document.getElementById('date').value} в ${document.getElementById('time').value}\nОткуда: ${document.getElementById('address_from').value}\nКуда: ${document.getElementById('address_to').value}\nТел: ${document.getElementById('phone').value}`;
 
-        // Логика отправки через MAX Bridge
-        if (window.WebApp && window.WebApp.shareMaxContent) {
-            // Включаем тактильный отклик (вибрацию)
-            if (window.WebApp.HapticFeedback) {
-                window.WebApp.HapticFeedback.notificationOccurred('success');
-            }
-
-            window.WebApp.shareMaxContent({
-                text: message
-            }).then(({ status }) => {
-                if (status === 'shared') {
-                    // Закрываем мини-приложение после успешной отправки
+        // ПОПЫТКА ОТПРАВКИ
+        try {
+            if (window.WebApp && window.WebApp.shareMaxContent) {
+                // Пытаемся вызвать нативный шеринг
+                const result = await window.WebApp.shareMaxContent({ text: msg });
+                
+                if (result.status === 'shared') {
+                    alert('Заявка отправлена!');
                     window.close();
                 }
-            }).catch((err) => {
-                console.error('Ошибка шеринга:', err);
-                alert('Не удалось отправить сообщение в чат.');
-            });
-        } else {
-            // Если открыто просто в браузере (для тестов)
-            console.log("Данные заказа:", message);
-            alert("Заказ сформирован (имитация). Откройте через MAX для реальной отправки.");
+            } else {
+                // Если мы в обычном браузере, просто копируем в буфер (для теста)
+                console.log("Вне MAX:", msg);
+                alert("Запуск вне MAX. Данные выведены в консоль.");
+            }
+        } catch (e) {
+            alert("Ошибка моста MAX: " + (e.message || "неизвестно"));
         }
     }
 </script>
-
 </body>
 </html>
