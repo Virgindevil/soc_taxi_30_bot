@@ -80,25 +80,20 @@
         webApp.expand();
 
         function sendData() {
-            const data = {
-                category: document.getElementById('category').value,
-                date: document.getElementById('date').value,
-                time: document.getElementById('time').value,
-                address: document.getElementById('address').value
-            };
-
-            // Важно: в MAX используется window.WebApp.sendData
-            if (window.WebApp) {
-                window.WebApp.sendData(JSON.stringify(data));
-            } else {
-                alert("Ошибка: Приложение запущено вне MAX");
-            }
+            // Пробуем найти WebApp в разных местах
+            const tg = window.WebApp || window.parent.WebApp;
             
-            // Проверка на пустые поля
-            if(!data.date || !data.address) {
-                alert("Пожалуйста, заполните дату и адрес");
-                return;
+            if (tg && typeof tg.sendData === 'function') {
+                const data = {
+                    category: document.getElementById('category').value,
+                    address: document.getElementById('address').value,
+                    date: document.getElementById('date').value
+                };
+                tg.sendData(JSON.stringify(data));
+            } else {
+                alert("Библиотека MAX не найдена. Попробуйте обновить страницу.");
             }
+        }
 
             // Отправляем данные боту
             webApp.sendData(JSON.stringify(data));
